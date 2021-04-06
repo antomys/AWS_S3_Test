@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Amazon.Runtime.SharedInterfaces;
 using Amazon.S3;
+using AWS_S3_Test.Services;
+using AWS_S3_Test.Services.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -22,14 +17,27 @@ namespace AWS_S3_Test
         {
             Configuration = configuration;
         }
-
+        
         private IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            //Adding aws logging but does not work
+            services.AddLogging(config =>
+            {
+                config.AddAWSProvider(Configuration.GetAWSLoggingConfigSection());
+                config.SetMinimumLevel(LogLevel.Debug);
+            });
+            
+            //Adding Default aws options through configuration
+            // that are in appSettings.Development.json
             services.AddDefaultAWSOptions(Configuration.GetAWSOptions());
+            //Adding IAmazonS3 AWS service
             services.AddAWSService<IAmazonS3>();
+            
+            //custom service class
+            services.AddSingleton<IS3Service, S3Service>();
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -46,7 +54,7 @@ namespace AWS_S3_Test
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "AWS_S3_Test v1"));
             }
-
+            
             app.UseHttpsRedirection();
 
             app.UseRouting();
