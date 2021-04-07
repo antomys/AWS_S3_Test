@@ -20,7 +20,10 @@ namespace AWS_S3_Test.Controllers
         [Route("[action]")]
         public async Task<IActionResult> CreateBucket(string bucketName = "test-bucket-pma")
         {
-            return Ok(await _s3Service.CreateBucketAsync(bucketName.ToLower()));
+            var response = await _s3Service.CreateBucketAsync(bucketName.ToLower());
+            if (response is null)
+                return BadRequest();
+            return Ok(response);
         }
         
         [HttpPut]

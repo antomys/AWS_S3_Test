@@ -60,8 +60,15 @@ namespace AWS_S3_Test.Services
                     StatusCode = (int) exception.StatusCode
                 };
             }
+            catch (Exception exception)
+            {
+                _logger.LogError("Unknown exception");
+                return new AwsS3Response
+                {
+                    RequestId = exception.Message,
+                };
+            }
             //And this is to somewhat else errors
-            _logger.LogError("Unknown exception");
             return null;
         }
 

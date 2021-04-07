@@ -6,7 +6,6 @@ namespace AWS_S3_Test.Services.Interfaces
     public interface IS3Service
     {
         Task<AwsS3Response> CreateBucketAsync(string bucketName);
-
         Task<object> AddObjectToBucketAsync(string bucketName,
             object randomJson, string newFileName);
         Task<string> GetBucketLocationAsync(string bucketName);
