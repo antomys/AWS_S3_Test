@@ -9,7 +9,7 @@ namespace AWS_S3_Test.Services.Interfaces
     {
         Task<AwsS3Response> CreateBucketAsync(string bucketName);
         Task<AwsS3Response> AddObjectToBucketAsync(string bucketName,
-            Stream randomJson, string newFileName);
+            object randomJson, string newFileName);
         Task<string> GetBucketLocationAsync(string bucketName);
         Task<object> GetObjectFromBucketAsync(string bucketName, string objectName);
         Task<List<string>> GetAllFileNamesFromBucketAsync(string bucketName);

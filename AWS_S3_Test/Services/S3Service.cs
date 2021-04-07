@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
+using System.Text;
+using Newtonsoft.Json;
 using System.Threading.Tasks;
 using Amazon.S3;
 using Amazon.S3.Model;
@@ -11,6 +12,7 @@ using Amazon.S3.Util;
 using AWS_S3_Test.Models;
 using AWS_S3_Test.Services.Interfaces;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Converters;
 
 namespace AWS_S3_Test.Services
 {
@@ -65,22 +67,23 @@ namespace AWS_S3_Test.Services
                 throw;
             }
         }
-
         public async Task<AwsS3Response> AddObjectToBucketAsync(string bucketName, 
-            Stream randomJson, string newFileName)
+            object randomJson, string newFileName)
         {
             if (randomJson == null)
-                return null;
+                throw new InvalidDataException();
             //var pathToFile = await WriteObjectToFileAsync(randomJson);
             try
             {
-                using var transferUtility = new TransferUtility(_amazonS3);
+                var streamJson = await SerializeToStream(randomJson);
                 
-                var fileTransferUtilityRequest = new TransferUtilityUploadRequest 
+                using var transferUtility = new TransferUtility(_amazonS3);
+                var fileTransferUtilityRequest = new TransferUtilityUploadRequest
                 {
                     BucketName = bucketName,
-                    InputStream = randomJson,
-                    Key = Guid.NewGuid().ToString()
+                    InputStream = streamJson,
+                    Key = Guid.NewGuid()
+                        .ToString(),
                 };
 
 
@@ -217,16 +220,14 @@ namespace AWS_S3_Test.Services
 
             throw new InvalidOperationException();
         }
-
-        private async Task<string> WriteObjectToFileAsync(object randomJson)
+        
+        private async Task<MemoryStream> SerializeToStream(object obj)
         {
-            var pathToNewFile = Path.Combine(DocPath, Guid.NewGuid()+".json");
-            var deserialized = await Task.Run(()=>JsonSerializer.Serialize(randomJson));
-            
-            await using var outputFile = new StreamWriter(pathToNewFile);
-            await outputFile.WriteAsync(deserialized);
-            
-            return pathToNewFile;
+            return await Task.Run(() =>
+            {
+                var jsonString = JsonConvert.SerializeObject(obj);
+                return new MemoryStream(Encoding.Default.GetBytes(jsonString));
+            });
         }
     }
 }

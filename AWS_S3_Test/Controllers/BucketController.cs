@@ -32,12 +32,12 @@ namespace AWS_S3_Test.Controllers
         [HttpPut]
         [TypeFilter(typeof(ExceptionMiddleware))]
         [Route("[action]")]
-        public async Task<IActionResult> AddObject(Stream jsonObject,
+        public async Task<IActionResult> AddObject(JsonObject randomJson,
             string newFileName = null, string bucketName = "test-bucket-pma")
         {
             return Ok(await _s3Service
                 .AddObjectToBucketAsync
-                    (bucketName.ToLower(),jsonObject, newFileName));
+                    (bucketName.ToLower(),randomJson, newFileName));
         }
         [HttpGet]
         [TypeFilter(typeof(ExceptionMiddleware))]
