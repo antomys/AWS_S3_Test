@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "gGDR1Dhk0DyTFZHzOwC20uzdAPbmc7Ws8L5cLOSO9C7a/NKkuXsTDqodq+uqpppNdvLX3KvEWJd3NsIGltM1kQ==",
+  "dgSpecHash": "b7F0xko65L45wzm/+2PI+LxOsv7e3uQV2rdgJkUjv71X7h58mv415lsp4Amt+tScJ4MpWTQwMQ46p/zdZo7ysw==",
   "success": true,
   "projectFilePath": "C:\\Users\\Volokhovych\\Documents\\RiderProj\\AWS_S3_Test\\AWS_S3_Test\\AWS_S3_Test.csproj",
   "expectedPackageFiles": [
@@ -21,6 +21,7 @@
     "C:\\Users\\Volokhovych\\.nuget\\packages\\microsoft.extensions.options\\2.1.0\\microsoft.extensions.options.2.1.0.nupkg.sha512",
     "C:\\Users\\Volokhovych\\.nuget\\packages\\microsoft.extensions.primitives\\2.1.0\\microsoft.extensions.primitives.2.1.0.nupkg.sha512",
     "C:\\Users\\Volokhovych\\.nuget\\packages\\microsoft.openapi\\1.2.3\\microsoft.openapi.1.2.3.nupkg.sha512",
+    "C:\\Users\\Volokhovych\\.nuget\\packages\\newtonsoft.json\\13.0.1\\newtonsoft.json.13.0.1.nupkg.sha512",
     "C:\\Users\\Volokhovych\\.nuget\\packages\\swashbuckle.aspnetcore\\5.6.3\\swashbuckle.aspnetcore.5.6.3.nupkg.sha512",
     "C:\\Users\\Volokhovych\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\5.6.3\\swashbuckle.aspnetcore.swagger.5.6.3.nupkg.sha512",
     "C:\\Users\\Volokhovych\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\5.6.3\\swashbuckle.aspnetcore.swaggergen.5.6.3.nupkg.sha512",

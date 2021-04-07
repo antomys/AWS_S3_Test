@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Amazon.S3;
@@ -49,68 +50,63 @@ namespace AWS_S3_Test.Services
                         StatusCode = (int) response.HttpStatusCode
                     };
                 }
+
+                throw new Exception("This bucket already exists");
             }
             //This is to catch amazon server exceptions
             catch (AmazonS3Exception exception)
             {
                 _logger.LogError(exception, "Amazon server exception");
-                return new AwsS3Response
-                {
-                    RequestId = exception.Message,
-                    StatusCode = (int) exception.StatusCode
-                };
+                throw;
             }
-            catch (Exception exception)
+            catch (Exception)
             {
                 _logger.LogError("Unknown exception");
-                return new AwsS3Response
-                {
-                    RequestId = exception.Message,
-                };
+                throw;
             }
-            //And this is to somewhat else errors
-            return null;
         }
 
-        public async Task<object> AddObjectToBucketAsync(string bucketName, 
-            object randomJson, string newFileName)
+        public async Task<AwsS3Response> AddObjectToBucketAsync(string bucketName, 
+            Stream randomJson, string newFileName)
         {
             if (randomJson == null)
                 return null;
-            var pathToFile = await WriteObjectToFileAsync(randomJson);
+            //var pathToFile = await WriteObjectToFileAsync(randomJson);
             try
             {
-                using var fileTransferUtility = new TransferUtility();
-                //Dunno why rider does not tells about bucket name but ok
-                //Well not it tells. Incredible
-                if(newFileName is null)
-                    await fileTransferUtility.UploadAsync(pathToFile, bucketName);
-                await fileTransferUtility.UploadAsync(pathToFile, bucketName,newFileName);
+                using var transferUtility = new TransferUtility(_amazonS3);
                 
-                await Task.Run(() =>File.Delete(pathToFile));
+                var fileTransferUtilityRequest = new TransferUtilityUploadRequest 
+                {
+                    BucketName = bucketName,
+                    InputStream = randomJson,
+                    Key = Guid.NewGuid().ToString()
+                };
+
+
+                if (newFileName != null)
+                {
+                    fileTransferUtilityRequest.Key = newFileName;
+                }
+
+                await transferUtility.UploadAsync(fileTransferUtilityRequest);
+                
                 _logger.LogInformation("Successfully pushed object to bucket");
-                return new
+                return new AwsS3Response
                 {
                     StatusCode = 200,
-                    JsonFileName = Path.GetFileName(pathToFile)
+                    RequestId = Path.GetFileName(fileTransferUtilityRequest.Key)
                 };
             }
             catch (AmazonS3Exception exception)
             {
                 _logger.LogError(exception, "Amazon server exception");
-                return new AwsS3Response
-                {
-                    StatusCode = (int)exception.StatusCode,
-                    RequestId = exception.Message
-                };
+                throw;
             }
             catch (Exception exception)
             {
                 _logger.LogError(exception, "Unknown exception");
-                return new AwsS3Response
-                {
-                    StatusCode = 400
-                };
+                throw;
             }
         }
         public async Task<string> GetBucketLocationAsync(string bucketName)
@@ -128,84 +124,52 @@ namespace AWS_S3_Test.Services
             }
            
         }
-        public async Task<object> DeleteFromBucketAsync(string bucketName, string objectName)
+        public async Task DeleteFromBucketAsync(string bucketName, string objectName)
         {
             try
             {
-                var response = await _amazonS3.DeleteObjectAsync(new DeleteObjectRequest
+                await _amazonS3.DeleteObjectAsync(new DeleteObjectRequest
                 {
                     BucketName = bucketName,
                     Key = objectName,
                 });
                 _logger.LogInformation("Successfully removed object from bucket!");
-                return new AwsS3Response
-                {
-                    StatusCode = (int)response.HttpStatusCode,
-                    RequestId = response.ResponseMetadata.ToString()
-                };
             }
             catch (AmazonS3Exception exception)
             {
                 _logger.LogError(exception, "Amazon server exception");
-                return new AwsS3Response
-                {
-                    StatusCode = (int)exception.StatusCode,
-                    RequestId = exception.Message
-                };
+                throw;
             }
         }
 
-        public async Task<object> DeleteBucketAsync(string bucketName)
+        public async Task DeleteBucketAsync(string bucketName)
         {
             try
             {
-                var response = await _amazonS3.DeleteBucketAsync(new DeleteBucketRequest {BucketName = bucketName});
+                await _amazonS3.DeleteBucketAsync(new DeleteBucketRequest {BucketName = bucketName});
                 _logger.LogInformation("Successfully deleted bucket!");
-                return new AwsS3Response
-                {
-                    StatusCode = (int)response.HttpStatusCode,
-                    RequestId = response.ResponseMetadata.ToString()
-                };
             } 
             catch (AmazonS3Exception exception)
             {
                 _logger.LogError(exception, "Amazon server exception");
-                return new AwsS3Response
-                {
-                    StatusCode = (int)exception.StatusCode,
-                    RequestId = exception.Message
-                };
+                throw;
             }
         }
-        public async Task<object> GetAllFileNamesFromBucketAsync(string bucketName)
+        public async Task<List<string>> GetAllFileNamesFromBucketAsync(string bucketName)
         {
             try
             {
-                var listItems = new List<object>();
                 var response =
                     await _amazonS3.ListObjectsV2Async(
                         new ListObjectsV2Request {BucketName = bucketName});
                 _logger.LogInformation("Successfully listed files from bucket!");
-                foreach (var file in response.S3Objects)
-                {
-                    listItems.Add(new
-                    {
-                        file.Key,
-                        file.LastModified,
-                        file.StorageClass,
-                        file.Size
-                    });
-                }
-                return listItems;
+                
+                return response.S3Objects.Select(file => file.Key).ToList();
             }
             catch (AmazonS3Exception exception)
             {
                 _logger.LogError(exception, "Amazon server exception");
-                return new AwsS3Response
-                {
-                    StatusCode = (int)exception.StatusCode,
-                    RequestId = exception.Message
-                };
+                throw;
             }
         }
         public async Task<object> GetObjectFromBucketAsync(string bucketName, string objectName)
@@ -244,11 +208,7 @@ namespace AWS_S3_Test.Services
             catch (AmazonS3Exception exception)
             {
                 _logger.LogError(exception, "Amazon server exception");
-                return new AwsS3Response
-                {
-                    StatusCode = (int) exception.StatusCode,
-                    RequestId = exception.Message
-                };
+                throw;
             }
             catch (Exception exception)
             {

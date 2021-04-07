@@ -1,4 +1,5 @@
 using Amazon.S3;
+using AWS_S3_Test.Middlewares;
 using AWS_S3_Test.Services;
 using AWS_S3_Test.Services.Interfaces;
 using Microsoft.AspNetCore.Builder;
@@ -58,6 +59,7 @@ namespace AWS_S3_Test
             
             app.UseHttpsRedirection();
 
+            app.UseMiddleware<LoggingMiddleware>();
             app.UseRouting();
 
             app.UseAuthorization();
